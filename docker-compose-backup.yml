@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: graphql_db
+    ports:
+      - "3307:3306"
+
+  graphql-api:
+    build: .
+    container_name: graphql-api
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mysql
+    env_file: .env
+    volumes:
+      - .:/app

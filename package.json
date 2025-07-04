@@ -1,0 +1,24 @@
+{
+  "name": "graphql-mysql-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-athena": "^3.828.0",
+    "apollo-server-express": "^3.12.0",
+    "athena-express": "^6.0.4",
+    "aws-sdk": "^2.1692.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "graphql": "^16.6.0",
+    "sequelize": "^6.32.0",
+    "wait-port": "^0.2.9"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module"
+}

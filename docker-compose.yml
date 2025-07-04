@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  graphql-api:
+    build: .
+    container_name: poc_graphql_athena_api
+    restart: on-failure
+    env_file: .env
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/app:delegated
+      
