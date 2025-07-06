@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.1692.0",
-    "athena-express": "^6",
+    "athena-express": "^5.1.14",
     "apollo-server-express": "^3.12.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
