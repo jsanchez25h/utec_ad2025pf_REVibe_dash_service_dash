@@ -10,18 +10,17 @@ const athena = new AthenaExpress({
 export default athena;
 */
 
-import { AthenaClient } from "@aws-sdk/client-athena";
-import AthenaExpress     from "athena-express";
+import AWS from "aws-sdk";
+import AthenaExpress from "athena-express";
 
-const athenaClient = new AthenaClient({
-  region: process.env.AWS_REGION || "us-east-1"
-});
+AWS.config.update({ region: process.env.AWS_REGION || "us-east-1" });
 
 const athena = new AthenaExpress({
-  athena  : athenaClient,                 // SDK v3 client
-  s3      : process.env.ATHENA_OUTPUT_S3, // "s3://bucket/path/"
-  db      : process.env.ATHENA_DATABASE,  // "my_database"
+  aws: AWS,                            // ← SDK v2 completo
+  s3:  process.env.ATHENA_OUTPUT_S3,
+  db:  process.env.ATHENA_DATABASE,
   getStats: true
 });
 
 export default athena;
+
