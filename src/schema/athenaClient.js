@@ -12,21 +12,15 @@ export default athena;
 
 
 
-// src/schema/athenaClient.js   (CommonJS-style dentro de módulos ES)
+// src/schema/athenaClient.js
+import AWS from 'aws-sdk';           // 👈  default-export del SDK v2
 import AthenaExpress from 'athena-express';
-import * as AWS      from 'aws-sdk';           // ← usa SDK v2
 
-// Región por defecto para el SDK
+// región por defecto (opcional si la pones en variables de entorno)
 AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' });
 
-/**
- * AthenaExpress para lanzar las queries.
- * - `aws`  : se le pasa el objeto AWS completo (debe contener AWS.Athena)
- * - `s3`   : bucket/prefijo donde Athena deja los resultados
- * - `getStats`: opcional (TRUE → estadísticas de la query)
- */
 const athena = new AthenaExpress({
-  aws : AWS,                                   // 👈 obligatorio en v6
+  aws : AWS,                         // ¡importante pasarlo completo!
   s3  : process.env.ATHENA_OUTPUT_S3,
   getStats: true
 });

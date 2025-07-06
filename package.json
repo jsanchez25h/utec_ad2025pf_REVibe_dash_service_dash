@@ -4,7 +4,6 @@
   "type": "module",
   "scripts": { "start": "node src/index.js" },
   "dependencies": {
-    "@aws-sdk/client-athena": "^3.828.0",
     "athena-express": "^6.0.4",
     "aws-sdk": "^2.1692.0",
     "apollo-server-express": "^3.12.0",
