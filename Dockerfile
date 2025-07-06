@@ -1,20 +1,36 @@
-# Utiliza una imagen de Node.js LTS
+# ──────────────────────────────────────────────────────────────
+#  1) Imagen base : Node 18 LTS
+# ──────────────────────────────────────────────────────────────
 FROM node:18
 
-# Directorio de trabajo en el contenedor
+# Carpeta de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copia solo package.json y package-lock.json para aprovechar cache de npm
+# ──────────────────────────────────────────────────────────────
+#  2) Copiamos SOLO los manifests de npm
+#     (para que la cache de Docker se use si no cambian)
+# ──────────────────────────────────────────────────────────────
 COPY package*.json ./
 
-# Instala dependencias (incluye @aws-sdk/client-athena y athena-express)
-RUN npm install --production
+# ──────────────────────────────────────────────────────────────
+#  3) Instalación EXACTA según package-lock.json
+#    • npm ci  →  ignora ^ ~ etc. y clava las versiones
+#    • --omit=dev  →  excluye dependencias de desarrollo
+# ──────────────────────────────────────────────────────────────
+RUN npm ci --omit=dev
 
-# Copia el resto del código
+# ──────────────────────────────────────────────────────────────
+#  4) Copiamos el resto del código fuente
+# ──────────────────────────────────────────────────────────────
 COPY . .
 
-# Exponer el puerto que usa tu app (por defecto 4000)
-EXPOSE 4000
+# ──────────────────────────────────────────────────────────────
+#  5) Puerto que expone la app  (GraphQL escucha en 9090)
+#    • Debe coincidir con el container_port del task-definition
+# ──────────────────────────────────────────────────────────────
+EXPOSE 9090
 
-# Comando por defecto para arrancar tu servidor
+# ──────────────────────────────────────────────────────────────
+#  6) Comando de arranque
+# ──────────────────────────────────────────────────────────────
 CMD ["node", "src/index.js"]
