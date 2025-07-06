@@ -12,64 +12,69 @@ on:
   workflow_dispatch:
 
 env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_REGION   : ${{ secrets.AWS_REGION }}
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-  ECR_REPO: ${{ secrets.ECR_REPO }}          # dashboard-kpi-service-g4
+  ECR_REPO     : ${{ secrets.ECR_REPO }}            # "dashboard-kpi-service-g4"
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Checkout
-      - uses: actions/checkout@v4
+    # 1 ─ Checkout
+    - uses: actions/checkout@v4
 
-      # 2) AWS creds (for ECR)
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region:            ${{ env.AWS_REGION }}
+    # 2 ─ AWS creds (login to ECR)
+    - uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region:            ${{ env.AWS_REGION }}
 
-      # 3) Login (and auto-create) ECR repo
-      - name: Login to / create ECR repo
-        id: ecr
-        run: |
-          set -e
-          repo_uri=$(aws ecr describe-repositories \
-              --repository-names "$ECR_REPO" \
-              --query 'repositories[0].repositoryUri' \
-              --output text 2>/dev/null || true)
+    # 3 ─ Ensure ECR repo exists + docker login
+    - name: Ensure ECR repo & Login
+      id: ecr
+      run: |
+        set -e
+        repo_uri=$(aws ecr describe-repositories \
+          --repository-names "$ECR_REPO" \
+          --query 'repositories[0].repositoryUri' \
+          --output text 2>/dev/null || true)
 
-          if [ -z "$repo_uri" ]; then
-            echo "ECR repo $ECR_REPO not found → creating"
-            repo_uri=$(aws ecr create-repository \
-              --repository-name "$ECR_REPO" \
-              --image-scanning-configuration scanOnPush=true \
-              --query 'repository.repositoryUri' \
-              --output text)
-          fi
+        if [ -z "$repo_uri" ]; then
+          echo "::notice::ECR repo $ECR_REPO not found – creating"
+          repo_uri=$(aws ecr create-repository \
+            --repository-name "$ECR_REPO" \
+            --image-scanning-configuration scanOnPush=true \
+            --query 'repository.repositoryUri' \
+            --output text)
+        fi
 
-          echo "repo=$repo_uri" >> $GITHUB_OUTPUT
-          aws ecr get-login-password |
-            docker login --username AWS --password-stdin "$repo_uri"
+        echo "repo=$repo_uri" >> "$GITHUB_OUTPUT"
+        aws ecr get-login-password --region "$AWS_REGION" |
+          docker login --username AWS --password-stdin "$repo_uri"
 
-      # 4) Build & push image
-      - name: Build & Push Docker image
-        id: build
-        run: |
-          IMAGE_TAG=$(git rev-parse --short HEAD)
-          IMAGE_URI=${{ steps.ecr.outputs.repo }}:${IMAGE_TAG}
-          docker build -t "$IMAGE_URI" .
-          docker push "$IMAGE_URI"
-          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+    # 4 ─ Build & push (SHA + latest)
+    - name: Build & Push image
+      id: build
+      env:
+        IMAGE_REPO: ${{ steps.ecr.outputs.repo }}
+        TAG_SHA   : ${{ github.sha }}
+      run: |
+        set -e
+        IMAGE_SHA=${IMAGE_REPO}:${TAG_SHA}
+        IMAGE_LATEST=${IMAGE_REPO}:latest
 
-      # 5) Disparar despliegue IaC (repo infra-deployments)
-      - name: Trigger Infra Deploy
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token:      ${{ secrets.INFRA_TOKEN }}
-          repository: jsanchez25h/utec_ad2025pf_REVibe_infra-deployments
-          event-type: deploy_dashboard_kpi
-          client-payload: |
-            { "image": "${{ steps.build.outputs.image }}" }
+        # Build (si usas Apple Silicon, añade --platform linux/amd64)
+        docker build -t "$IMAGE_SHA" .
+
+        # Etiqueta "latest"
+        docker tag "$IMAGE_SHA" "$IMAGE_LATEST"
+
+        # Push ambas
+        docker push "$IMAGE_SHA"
+        docker push "$IMAGE_LATEST"
+
+        # Exporta variable para eldispatch
+        echo "image_uri=$IMAGE_SHA" >> "$GITHUB_OUTPUT"
+
