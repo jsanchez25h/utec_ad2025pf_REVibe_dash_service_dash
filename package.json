@@ -1,13 +1,16 @@
 {
   "name": "graphql-athena-api",
   "version": "1.0.0",
+  "description": "",
   "type": "module",
   "main": "src/index.js",
-  "scripts": { "start": "node src/index.js" },
+  "scripts": {
+    "start": "node src/index.js"
+  },
   "dependencies": {
     "aws-sdk": "^2.1692.0",
-    "apollo-server-express": "^3.12.0",
     "athena-express": "^6",
+    "apollo-server-express": "^3.12.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "graphql": "^16.6.0"
