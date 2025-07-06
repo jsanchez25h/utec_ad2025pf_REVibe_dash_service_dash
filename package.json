@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "@aws-sdk/client-athena": "^3.828.0",
-    "@aws-sdk/client-s3": "^3.828.0",          // Athena-Express usa S3 internamente
+    "@aws-sdk/client-s3": "^3.828.0",
     "apollo-server-express": "^3.12.0",
-    "athena-express": "^8.0.0",                // ← versión 8 ó superior
+    "athena-express": "^8.0.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "graphql": "^16.6.0"
