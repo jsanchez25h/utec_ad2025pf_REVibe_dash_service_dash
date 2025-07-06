@@ -11,25 +11,27 @@ export default athena;
 */
 
 
+
+/* eslint-disable import/no-extraneous-dependencies */
 import AWS from "aws-sdk";
 import AthenaExpress from "athena-express";
 
 const REGION = process.env.AWS_REGION || "us-east-1";
 
-/* 1 · configura la región global (opcional pero habitual) */
+/* 1 · Configura la región global del SDK v2 */
 AWS.config.update({ region: REGION });
 
-/* 2 · crea los clientes que Athena-Express necesita */
-const awsClients = {
-  Athena: new AWS.Athena({ region: REGION }),
-  S3     : new AWS.S3({ region: REGION })
+/* 2 · Crea un objeto con los constructores que Athena-Express exige */
+const awsServices = {
+  Athena: AWS.Athena,   //  <<< constructores, NO instancias
+  S3:     AWS.S3
 };
 
-/* 3 · construye Athena-Express v6 pasándole esos clientes */
+/* 3 · Inicializa Athena-Express v6 */
 const athena = new AthenaExpress({
-  aws: awsClients,                         //  << CLAVE
-  s3 : process.env.ATHENA_OUTPUT_S3,       //  "s3://bucket/path/"
-  db : process.env.ATHENA_DATABASE,        //  "my_database"
+  aws: awsServices,                  //  << clave
+  s3 : process.env.ATHENA_OUTPUT_S3, //  "s3://bucket/path/"
+  db : process.env.ATHENA_DATABASE,  //  "my_database"
   getStats: true
 });
 
